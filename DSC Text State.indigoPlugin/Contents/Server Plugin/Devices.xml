@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<Devices>
+	<Device type="custom" id="dscTextState">
+	    <Name>DSC Text State</Name>
+	    <ConfigUI>
+            <Field id="keypad" type="menu">
+                <Label>Select Keypad Device:</Label>
+                <List class='self' method='getKeypadDeviceList'/>
+            </Field>
+        </ConfigUI>
+        <States>
+            <State id="state">
+                <ValueType>String</ValueType>
+                <TriggerLabel>State</TriggerLabel>
+                <ControlPageLabel>State</ControlPageLabel>
+            </State>
+            <State id="shortState">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Short State</TriggerLabel>
+                <ControlPageLabel>Short State</ControlPageLabel>
+            </State>
+            <State id="onOffState">
+                <ValueType>Boolean</ValueType>
+                <TriggerLabel>On/Off State</TriggerLabel>
+                <ControlPageLabel>On/Off State</ControlPageLabel>
+            </State>
+        </States>
+        <UiDisplayStateId>shortState</UiDisplayStateId>
+    </Device>
+</Devices>
