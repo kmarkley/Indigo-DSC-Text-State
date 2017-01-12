@@ -61,8 +61,7 @@ class Plugin(indigo.PluginBase):
         if dev.version != self.pluginVersion:
             self.updateDeviceVersion(dev)
         if dev.id not in self.deviceDict:
-            theProps = dev.pluginProps
-            self.deviceDict[dev.id] = {'dev':dev, 'keypad':indigo.devices[int(theProps['keypad'])]}
+            self.deviceDict[dev.id] = {'dev':dev, 'keypad':indigo.devices[int(dev.pluginProps['keypad'])]}
             self.updateDeviceStatus(dev)
     
     ########################################
@@ -75,6 +74,9 @@ class Plugin(indigo.PluginBase):
     def validateDeviceConfigUi(self, valuesDict, typeId, devId, runtime=False):
         self.logger.debug("validateDeviceConfigUi: " + typeId)
         errorsDict = indigo.Dict()
+        
+        if not valuesDict.get('keypad',""):
+            errorsDict['keypad'] = "Required"
         
         if len(errorsDict) > 0:
             return (False, valuesDict, errorsDict)
@@ -94,7 +96,6 @@ class Plugin(indigo.PluginBase):
     ########################################
     def updateDeviceStatus(self, dev):
         self.logger.debug("updateDeviceStatus: " + dev.name)
-        theProps = dev.pluginProps
         keypad = self.deviceDict[dev.id]['keypad']
         newStates = []
         
@@ -102,38 +103,47 @@ class Plugin(indigo.PluginBase):
             onState      = False
             shortState   = ["Not Ready","Ready"][keypad.states['ReadyState.ready']]
             displayState = "Disarmed (%s)" % shortState
+            imageState   = "disarmed"
         elif keypad.states['state.armed']:
             onState      = True
             shortState   = keypad.states['ArmedState']
             displayState = "%s %s" % (shortState, keypad.states["state"])
+            imageState   = shortState
         elif keypad.states['state.exitDelay']:
             onState      = False
             shortState   = "Exit"
             displayState = "Exit Delay"
+            imageState   = "delay"
         elif keypad.states['state.entryDelay']:
             onState      = True
             shortState   = "Entry"
             displayState = "Entry Delay"
+            imageState   = "delay"
         elif not keypad.states['PanicState.none']:
             onState      = True
             shortState   = "Panic"
             displayState = "Panic"
-            if not keypad.states['PanicState.panic']:
+            if keypad.states['PanicState.panic']:
+                displayState = displayState + " (Police)"
+            else:
                 displayState = displayState + " (%s)" % keypad.states['PanicState']
+            imageState   = "alarm"
         elif keypad.states['state.tripped']:
             onState      = True
             shortState   = "Tripped"
             displayState = "Tripped"
-        else:   # shouldn't be anything left, but just in case
+            imageState   = "alarm"
+        else:   # there shouldn't be anything left, but just in case
             onState      = False
             shortState   = keypad.states['state']
             displayState = keypad.states['state']
+            imageState   = "unknown"
         
+        # update device
         newStates.append({'key':'onOffState','value':onState})
         newStates.append({'key':'shortState','value':shortState.title()})
         newStates.append({'key':'state','value':displayState.title()})
-        
-        # update device
+        newStates.append({'key':'imageState','value':imageState})
         dev.updateStatesOnServer(newStates)
     
     ########################################
@@ -141,9 +151,18 @@ class Plugin(indigo.PluginBase):
     ########################################
     def deviceUpdated(self, oldDev, newDev):
 
-        if (oldDev.pluginId == self.pluginId) or (newDev.pluginId == self.pluginId):
+        # device belongs to plugin
+        if newDev.pluginId == self.pluginId:
+            indigo.PluginBase.deviceUpdated(self, oldDev, newDev)
+            # update local copy
+            if newDev.id in self.deviceDict:
+                self.deviceDict[newDev.id]['dev'] = newDev
+        
+        # device is being changed to something else
+        elif oldDev.pluginId == self.pluginId:
             indigo.PluginBase.deviceUpdated(self, oldDev, newDev)
         
+        # keypad device
         elif newDev.pluginId == "com.frightideas.indigoplugin.dscAlarm" and newDev.deviceTypeId == "alarmKeypad":
             for devId in self.deviceDict:
                 keypad = self.deviceDict[devId]['keypad']

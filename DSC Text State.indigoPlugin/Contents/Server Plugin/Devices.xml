@@ -19,6 +19,11 @@
                 <TriggerLabel>Short State</TriggerLabel>
                 <ControlPageLabel>Short State</ControlPageLabel>
             </State>
+            <State id="imageState">
+                <ValueType>String</ValueType>
+                <TriggerLabel>Image State</TriggerLabel>
+                <ControlPageLabel>Image State</ControlPageLabel>
+            </State>
             <State id="onOffState">
                 <ValueType>Boolean</ValueType>
                 <TriggerLabel>On/Off State</TriggerLabel>
