@@ -60,9 +60,8 @@ class Plugin(indigo.PluginBase):
         self.logger.debug("deviceStartComm: "+dev.name)
         if dev.version != self.pluginVersion:
             self.updateDeviceVersion(dev)
-        if dev.id not in self.deviceDict:
-            self.deviceDict[dev.id] = {'dev':dev, 'keypad':indigo.devices[int(dev.pluginProps['keypad'])]}
-            self.updateDeviceStatus(dev)
+        self.deviceDict[dev.id] = {'dev':dev, 'keypad':indigo.devices[int(dev.pluginProps['keypad'])]}
+        self.updateDeviceStatus(dev)
     
     ########################################
     def deviceStopComm(self, dev):
@@ -126,7 +125,7 @@ class Plugin(indigo.PluginBase):
             if keypad.states['PanicState.panic']:
                 displayState = displayState + " (Police)"
             else:
-                displayState = displayState + " (%s)" % keypad.states['PanicState']
+                displayState = "%s (%s)" % (displayState, keypad.states['PanicState'])
             imageState   = "alarm"
         elif keypad.states['state.tripped']:
             onState      = True
@@ -152,14 +151,10 @@ class Plugin(indigo.PluginBase):
     def deviceUpdated(self, oldDev, newDev):
 
         # device belongs to plugin
-        if newDev.pluginId == self.pluginId:
-            indigo.PluginBase.deviceUpdated(self, oldDev, newDev)
-            # update local copy
+        if newDev.pluginId == self.pluginId or oldDev.pluginId == self.pluginId:
+            # update local copy (will be removed/overwritten if communication is stopped/re-started)
             if newDev.id in self.deviceDict:
                 self.deviceDict[newDev.id]['dev'] = newDev
-        
-        # device is being changed to something else
-        elif oldDev.pluginId == self.pluginId:
             indigo.PluginBase.deviceUpdated(self, oldDev, newDev)
         
         # keypad device
