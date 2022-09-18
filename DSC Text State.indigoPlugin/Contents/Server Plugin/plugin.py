@@ -103,11 +103,16 @@ class Plugin(indigo.PluginBase):
             shortState   = ["Not Ready","Ready"][keypad.states['ReadyState.ready']]
             displayState = "Disarmed (%s)" % shortState
             imageState   = "disarmed"
-        elif keypad.states['state.armed']:
+        elif keypad.states['state.armedAway']:
             onState      = True
-            shortState   = keypad.states['ArmedState']
-            displayState = "%s %s" % (shortState, keypad.states["state"])
-            imageState   = shortState
+            shortState   = "Away"
+            displayState = "Away Armed"
+            imageState   = "away"
+        elif keypad.states['state.armedStay']:
+            onState      = True
+            shortState   = "Stay"
+            displayState = "Stay Armed"
+            imageState   = "stay"
         elif keypad.states['state.exitDelay']:
             onState      = False
             shortState   = "Exit"
